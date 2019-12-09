@@ -11,7 +11,7 @@
          scribble/base-render
          xml
          web-server/templates
-         (only-in website html/inline site-dir page style/inline include-css iframe script/inline)
+         (only-in website html/inline site-dir sub-site-dir path-prefix page style/inline include-css iframe script/inline)
          racket/runtime-path)
 
 (define-runtime-path here ".")
@@ -42,7 +42,10 @@
 
 (define (scribble->html doc name)
  (thunk*
-  (define dest-dir (build-path (site-dir) name))
+  (define dest-dir 
+    (if (sub-site-dir)
+      (build-path (site-dir) (sub-site-dir) name)
+      (build-path (site-dir) name)))
 
   (render 
      (list doc) 
@@ -50,7 +53,10 @@
      #:dest-dir dest-dir)
 
   (list
-   (iframe 'src: (~a name "/" name ".html") 
+   (iframe 'src: 
+     (if (path-prefix)
+       (~a "/" (path-prefix) "/" name "/" name ".html") 
+       (~a name "/" name ".html"))
     'frameborder: "0" 
     'scrolling: "no"
     'onload: "var t = this;setInterval(function(){resizeIframe(t)},1000);"
